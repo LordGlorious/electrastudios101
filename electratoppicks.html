@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Top Picks — Electra Studios</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            background: #e9f1e9;
+            color: #111;
+            min-height: 100vh;
+            padding-bottom: 120px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 36px auto;
+            padding: 20px;
+        }
+
+        .board {
+            background: linear-gradient(180deg, #3c4e36, #5b7a54);
+            border-radius: 18px;
+            padding: 28px;
+            margin-bottom: 28px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+
+        .board::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: url('/mnt/data/A_webpage_design_titled_"Top_Picks,"_features_two_.png');
+            background-size: cover;
+            opacity: 0.12;
+            mix-blend-mode: overlay;
+        }
+
+        .board > * { position: relative; z-index: 2; }
+
+        .section-title {
+            text-align: center;
+            color: #fff;
+            font-weight: 900;
+            letter-spacing: 2px;
+            font-size: clamp(28px, 4.5vw, 56px);
+            margin: 8px 0 18px;
+        }
+
+        .lead {
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto 18px;
+            color: #f5fff5;
+        }
+
+        .grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        }
+
+        .grid-item {
+            cursor: pointer;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.04);
+            transition: transform .25s;
+            display: flex;
+            align-items: stretch;
+        }
+
+        .grid-item:hover { transform: scale(1.02); }
+
+        .thumb {
+            width: 100%;
+            position: relative;
+            display: block;
+        }
+
+        /* Thumbnail images: keep natural aspect ratio and not cropped in full view */
+        .thumb img {
+            display: block;
+            width: 100%;
+            height: auto;       /* preserves image natural aspect ratio */
+            object-fit: contain;/* safe fallback */
+            background: #000;
+        }
+
+        /* Thumbnail videos: show as responsive element, keep aspect */
+        .thumb video {
+            display: block;
+            width: 100%;
+            height: auto;       /* prevents thumbnails from being stretched/cropped */
+            object-fit: contain;
+            background: #000;
+        }
+
+        .play-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .play-overlay .circle{
+            width: 70px; height: 70px; border-radius: 50%;
+            background: rgba(255,255,255,0.88);
+            display:flex; align-items:center; justify-content:center;
+        }
+
+        /* LIGHTBOX */
+        #lightbox {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.88);
+            z-index: 12000;
+            padding: 20px;
+            transition: opacity .18s;
+        }
+        #lightbox.show { display:flex; }
+
+        #lb-inner {
+            position: relative;
+            max-width: 95vw;
+            max-height: 95vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        /* Media inside lightbox: show at natural size up to viewport */
+        #lb-media img,
+        #lb-media video {
+            max-width: 90vw;
+            max-height: 90vh;
+            width: auto;
+            height: auto;
+            border-radius: 8px;
+            background: #000;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+        }
+
+        #lb-media video { outline: none; }
+
+        .lb-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 44px; height: 44px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.12);
+            display:flex; align-items:center; justify-content:center;
+            cursor:pointer; z-index:12100;
+        }
+
+        .lb-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            display:flex; align-items:center; justify-content:center;
+            background: rgba(255,255,255,0.06);
+            cursor:pointer;
+            z-index:12100;
+        }
+        .lb-arrow.left { left: 18px; }
+        .lb-arrow.right { right: 18px; }
+
+        .credits {
+            text-align: center;
+            margin-top: 12px;
+            color: rgba(0,0,0,0.45);
+            font-size: 12px;
+        }
+
+        .next-btn {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 9998;
+            border-radius: 14px;
+            padding: 14px 26px;
+            font-weight: 800;
+            cursor: pointer;
+            background: #fff;
+            border: none;
+        }
+
+        /* small UI niceties */
+        button:focus, .grid-item:focus { outline: 3px solid rgba(255,255,255,0.12); outline-offset: 2px; }
+        @media (max-width:600px){
+            .play-overlay .circle{ width:56px; height:56px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <section class="board" id="behind-section">
+        <h1 class="section-title">Behind the Scenes</h1>
+        <p class="lead">HOW THINGS ARE LOOKING THIS CHRISTMAS AT ELECTRA STUDIOS WITH OUR WONDERFUL STAFF — EVERY MOMENT IS WORTH CAPTURING. CREATE, CAPTURE AND SHINE.</p>
+
+        <div class="grid" id="image-grid">
+            <div class="grid-item" data-type="image" data-src="behind_the_scenes_1.jpg" tabindex="0">
+                <div class="thumb"><img src="behind_the_scenes_1.jpg" alt="Behind the Scenes 1"></div>
+            </div>
+            <div class="grid-item" data-type="image" data-src="behind_the_scenes_2.jpg" tabindex="0">
+                <div class="thumb"><img src="behind_the_scenes_2.jpg" alt="Behind the Scenes 2"></div>
+            </div>
+            <div class="grid-item" data-type="image" data-src="behind_the_scenes_3.jpg" tabindex="0">
+                <div class="thumb"><img src="behind_the_scenes_3.jpg" alt="Behind the Scenes 3"></div>
+            </div>
+            <div class="grid-item" data-type="image" data-src="behind_the_scenes_4.jpg" tabindex="0">
+                <div class="thumb"><img src="behind_the_scenes_4.jpg" alt="Behind the Scenes 4"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="board" id="videos-section">
+        <h1 class="section-title">Videos</h1>
+        <p class="lead">Are you going to book a session for your Christmas shoots? Here at Electra Studios we are christmasholics — CREATE, CAPTURE, SHINE.</p>
+
+        <div class="grid" id="video-grid">
+            <div class="grid-item" data-type="video" data-src="header1.mp4" tabindex="0">
+                <div class="thumb" style="position:relative;">
+                    <video muted playsinline autoplay loop preload="metadata" aria-hidden="true">
+                        <source src="header1.mp4" type="video/mp4">
+                    </video>
+                    <div class="play-overlay">
+                        <div class="circle" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 5v14l11-7z"></path></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-item" data-type="video" data-src="header2.mp4" tabindex="0">
+                <div class="thumb" style="position:relative;">
+                    <video muted playsinline autoplay loop preload="metadata" aria-hidden="true">
+                        <source src="header2.mp4" type="video/mp4">
+                    </video>
+                    <div class="play-overlay">
+                        <div class="circle" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 5v14l11-7z"></path></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <p class="credits">Tip: click any thumbnail to open at original size. Use ← and → to navigate, Esc to close, or swipe on mobile.</p>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="lb-close" id="lb-close" title="Close" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M18 6L6 18M6 6l12 12"/></svg>
+    </div>
+    <div class="lb-arrow left" id="lb-prev" title="Previous" aria-label="Previous">
+        <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#fff" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+    </div>
+    <div class="lb-arrow right" id="lb-next" title="Next" aria-label="Next">
+        <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#fff" d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+    </div>
+
+    <div id="lb-inner">
+        <div id="lb-media" role="document" aria-live="polite"></div>
+    </div>
+</div>
+
+<!-- NEXT PAGE BUTTON -->
+<button id="nextPage" class="next-btn" aria-label="Next page">Next Page →</button>
+
+<script>
+(function(){
+    // navigation button
+    const btn = document.getElementById('nextPage');
+    const styles = ['btn-style-1','btn-style-2','btn-style-3','btn-style-4','btn-style-5'];
+    btn.classList.add(styles[Math.floor(Math.random()*styles.length)]);
+    btn.addEventListener('click', ()=> window.location.href = 'toppicks.html');
+
+    // Build items array from both grids (keeps order as DOM order)
+    const itemNodes = Array.from(document.querySelectorAll('.grid-item'));
+    const items = itemNodes.map(node => ({
+        type: node.dataset.type,
+        src: node.dataset.src,
+        node
+    }));
+
+    const lightbox = document.getElementById('lightbox');
+    const lbMedia = document.getElementById('lb-media');
+    const lbClose = document.getElementById('lb-close');
+    const lbPrev = document.getElementById('lb-prev');
+    const lbNext = document.getElementById('lb-next');
+    let currentIndex = -1;
+
+    function clearLb() {
+        lbMedia.innerHTML = '';
+    }
+
+    function openLightbox(index) {
+        if (index < 0 || index >= items.length) return;
+        currentIndex = index;
+        clearLb();
+
+        const it = items[currentIndex];
+        if (it.type === 'image') {
+            const img = document.createElement('img');
+            img.src = it.src;
+            img.alt = '';
+            img.onload = ()=> { /* natural size available if needed */ };
+            img.style.maxWidth = '90vw';
+            img.style.maxHeight = '90vh';
+            img.style.width = 'auto';
+            img.style.height = 'auto';
+            lbMedia.appendChild(img);
+        } else if (it.type === 'video') {
+            // create a video element that plays but does not force fullscreen or zoom
+            const vid = document.createElement('video');
+            vid.src = it.src;
+            vid.controls = true;
+            vid.autoplay = true;
+            vid.playsInline = true;
+            vid.preload = 'metadata';
+            vid.style.maxWidth = '90vw';
+            vid.style.maxHeight = '90vh';
+            vid.style.width = 'auto';
+            vid.style.height = 'auto';
+            vid.setAttribute('controls',''); // ensure controls present
+            lbMedia.appendChild(vid);
+            // ensure play starts after appended (some browsers restrict autoplay with sound; videos in grid are muted)
+            vid.muted = false; // allow sound in lightbox; user can control
+            const playPromise = vid.play();
+            if (playPromise && playPromise.catch) {
+                playPromise.catch(()=> {
+                    // Autoplay blocked: keep controls visible and do not force anything
+                });
+            }
+        }
+
+        lightbox.classList.add('show');
+        lightbox.setAttribute('aria-hidden', 'false');
+
+        // set focus to close for accessibility
+        lbClose.focus();
+    }
+
+    function closeLightbox() {
+        // pause any video inside
+        const v = lbMedia.querySelector('video');
+        if (v && !v.paused) {
+            try { v.pause(); } catch(e) {}
+        }
+        clearLb();
+        lightbox.classList.remove('show');
+        lightbox.setAttribute('aria-hidden','true');
+        currentIndex = -1;
+    }
+
+    function showPrev() {
+        if (currentIndex <= 0) {
+            // wrap-around
+            openLightbox(items.length - 1);
+        } else {
+            openLightbox(currentIndex - 1);
+        }
+    }
+    function showNext() {
+        if (currentIndex >= items.length - 1) {
+            openLightbox(0);
+        } else {
+            openLightbox(currentIndex + 1);
+        }
+    }
+
+    // Attach click/keyboard handlers on thumbnails
+    itemNodes.forEach((node, idx) => {
+        node.addEventListener('click', (e) => {
+            e.preventDefault();
+            openLightbox(idx);
+        });
+        node.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openLightbox(idx);
+            }
+        });
+    });
+
+    // Close / navigation UI
+    lbClose.addEventListener('click', closeLightbox);
+    lbPrev.addEventListener('click', showPrev);
+    lbNext.addEventListener('click', showNext);
+
+    // overlay click closes when clicking outside media
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) closeLightbox();
+    });
+
+    // keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (!lightbox.classList.contains('show')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') showPrev();
+        if (e.key === 'ArrowRight') showNext();
+    });
+
+    // touch support for swipe left/right inside lightbox
+    (function addSwipe() {
+        let startX = 0, startY = 0;
+        const threshold = 30;
+        lbMedia.addEventListener('touchstart', (e) => {
+            const t = e.touches[0];
+            startX = t.clientX; startY = t.clientY;
+        }, {passive:true});
+        lbMedia.addEventListener('touchend', (e) => {
+            const t = e.changedTouches[0];
+            const dx = t.clientX - startX;
+            const dy = t.clientY - startY;
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > threshold) {
+                if (dx > 0) showPrev(); else showNext();
+            }
+        });
+    })();
+
+    // Accessibility: trap focus inside lightbox while open (minimal)
+    document.addEventListener('focus', function(ev){
+        if (!lightbox.classList.contains('show')) return;
+        if (!lightbox.contains(ev.target)) {
+            ev.stopPropagation();
+            lbClose.focus();
+        }
+    }, true);
+
+})();
+</script>
+
+</body>
+</html>
